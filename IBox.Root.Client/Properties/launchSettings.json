@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "IBox.Root.Client": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:58388;http://localhost:58389"
+    }
+  }
+}

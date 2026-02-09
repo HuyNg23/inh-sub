@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IBox.Database.Root\IBox.Database.Root.csproj" />
+    <ProjectReference Include="..\IBox.Database.SQLite\IBox.Database.SQLiteDBChatDay.csproj" />
+    <ProjectReference Include="..\IBox.Database.Tenant\IBox.Database.Tenant.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,80 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ibox-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # If using cert-manager
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - client.ibox.yourdomain.com
+        - api.ibox.yourdomain.com
+        - root.ibox.yourdomain.com
+        - schedule.ibox.yourdomain.com
+        - store.ibox.yourdomain.com
+        - logs.ibox.yourdomain.com
+      secretName: ibox-tls-secret
+  rules:
+    - host: client.ibox.yourdomain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ibox-client
+                port:
+                  number: 80
+    - host: api.ibox.yourdomain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ibox-restservice
+                port:
+                  number: 80
+    - host: root.ibox.yourdomain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ibox-root-client
+                port:
+                  number: 80
+    - host: schedule.ibox.yourdomain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ibox-schedule
+                port:
+                  number: 80
+    - host: store.ibox.yourdomain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ibox-storeservice
+                port:
+                  number: 80
+    - host: logs.ibox.yourdomain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ibox-logservice
+                port:
+                  number: 80

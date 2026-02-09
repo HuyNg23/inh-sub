@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>c8a66004-684f-4ab6-8b70-95e35627627a</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Controllers\XPageBuilder\**" />
+    <Compile Remove="Controllers\XWorkFowsDefines\**" />
+    <Content Remove="Controllers\XPageBuilder\**" />
+    <Content Remove="Controllers\XWorkFowsDefines\**" />
+    <EmbeddedResource Remove="Controllers\XPageBuilder\**" />
+    <EmbeddedResource Remove="Controllers\XWorkFowsDefines\**" />
+    <None Remove="Controllers\XPageBuilder\**" />
+    <None Remove="Controllers\XWorkFowsDefines\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.13.2" />
+    <PackageReference Include="EntityFramework" Version="6.5.1" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.10">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.3" />
+    <PackageReference Include="Microsoft.Win32.SystemEvents" Version="7.0.0" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.170" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <PackageReference Include="System.Formats.Asn1" Version="8.0.1" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IBox.Client.Business\IBox.Client.Business.csproj" />
+    <ProjectReference Include="..\IBox.Common\IBox.Common.csproj" />
+    <ProjectReference Include="..\IBox.DLEx\IBox.DLEx.csproj" />
+    <ProjectReference Include="..\IBox.Schedule.Library\IBox.Schedule.Library.csproj" />
+    <ProjectReference Include="..\IBox.ScheduleHistory\IBox.ScheduleHistory.csproj" />
+    <ProjectReference Include="..\IBox.Security\IBox.Security.csproj" />
+    <ProjectReference Include="..\IBox.WebSocket\IBox.WebSocket.csproj" />
+  </ItemGroup>
+
+</Project>

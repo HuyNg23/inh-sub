@@ -1,0 +1,31 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "IBox.Client\\IBox.Client.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "IBox.RestService\\IBox.RestService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "IBox.Schedule\\IBox.Schedule.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "IBox.LogService\\IBox.LogService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "IBox.StoreService\\IBox.StoreService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "IBox.Root.Client\\IBox.Root.Client.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

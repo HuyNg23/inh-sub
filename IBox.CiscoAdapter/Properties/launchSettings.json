@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "IBox.CiscoAdapter": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:58768;http://localhost:58769"
+    }
+  }
+}

@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ibox-storeservice
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ibox-storeservice
+  template:
+    metadata:
+      labels:
+        app: ibox-storeservice
+    spec:
+      containers:
+        - name: ibox-storeservice
+          image: your-registry/ibox-storeservice:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          env:
+            - name: ASPNETCORE_URLS
+              value: http://+:5000
+          envFrom:
+            - configMapRef:
+                name: ibox-config
+            - secretRef:
+                name: ibox-secrets
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+          volumeMounts:
+            - name: logs
+              mountPath: /app/Logs
+      volumes:
+        - name: logs
+          persistentVolumeClaim:
+            claimName: ibox-logs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ibox-storeservice
+spec:
+  selector:
+    app: ibox-storeservice
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5000
