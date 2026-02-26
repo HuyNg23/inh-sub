@@ -79,3 +79,8 @@ wwwroot/uploads/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# Project directories exceptions (override *.db and *.sqlite patterns)
+!IBox.ChatBot.DB/
+!IBox.Database.SQLite/
+!IBox.History.DB/
