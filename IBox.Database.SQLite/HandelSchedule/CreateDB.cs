@@ -28,7 +28,7 @@ namespace IBox.ChatBot.HandleScheduleSQL
         {
             try
             {
-                string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseChatBot, tenantId);
+                string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseChatBot, tenantId);
                 _commonData.CreateFolder1(pathNow);
                 if (!Directory.Exists(pathNow))
                 {
@@ -200,7 +200,7 @@ namespace IBox.ChatBot.HandleScheduleSQL
         {
             try
             {
-                string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseLogIBox, tenantId);
+                string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseLogIBox, tenantId);
                 _commonData.CreateFolder1(pathNow);
                 if (!Directory.Exists(pathNow))
                 {

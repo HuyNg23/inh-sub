@@ -14,7 +14,6 @@ using Newtonsoft.Json;
 using Org.BouncyCastle.Ocsp;
 using Serilog;
 using System.IO.Compression;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
@@ -36,6 +35,7 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
             _tenantContext = tenantContext;
             _restAPI = restAPI;
         }
+
         public ResponseAllWorkflowExecuteHistory GetAllWorkflowExecuteHistories(RequestGetAllExecuteHistory requestGetAllExecuteHistory)
         {
             try
@@ -45,8 +45,7 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
                     return new ResponseAllWorkflowExecuteHistory();
                 }
 
-                string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseLogIBox, requestGetAllExecuteHistory.TenantId ?? "");
-                _commonData.CreateFolder1(pathNow);
+                string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseLogIBox, requestGetAllExecuteHistory.TenantId ?? "");
                 if (!Directory.Exists(pathNow))
                 {
                     return new ResponseAllWorkflowExecuteHistory();
@@ -194,15 +193,21 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
         {
             try
             {
+                Log.Information($"GetAllApiThirdPartyExecuteHistories - Start");
+                Log.Information($"Request: {JsonConvert.SerializeObject(req)}");
+                
                 if (req == null)
                 {
+                    Log.Warning($"Request is null, returning empty response");
                     return new ResponseAllApiThirdPartyExecuteHistory();
                 }
 
-                string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseLogIBox, req.TenantId ?? "");
-                _commonData.CreateFolder1(pathNow);
+                string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseLogIBox, req.TenantId ?? "");
+                Log.Information($"Database path: {pathNow}");
+                
                 if (!Directory.Exists(pathNow))
                 {
+                    Log.Warning($"Database path does not exist: {pathNow}");
                     return new ResponseAllApiThirdPartyExecuteHistory();
                 }
 
@@ -223,14 +228,21 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
                     endDate = _commonData.ConvertDateTimeToTimeSpan(end);
                 }
 
+                Log.Information($"Date range - Start: {start}, End: {end}, StartDate: {startDate}, EndDate: {endDate}");
+                
                 fileDBChatBotNow1 = _createDB.GetFilePath(pathNow, start);
+                Log.Information($"DB file path: {fileDBChatBotNow1}");
+                
                 Regex dbPattern = new(@"history_(\d{8}_\d{6})\.db$", RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
 
                 var fileDB = Directory.Exists(fileDBChatBotNow1) ? Directory.GetFiles(fileDBChatBotNow1, "history*.db") : Array.Empty<string>();
+                Log.Information($"Found {fileDB.Length} DB files in directory");
 
                 if (fileDB.Length == 0)
                 {
+                    Log.Information($"No DB files found, trying to unzip...");
                     fileDB = UnZipFileDB(req.TenantId ?? "", start);
+                    Log.Information($"After unzip: {fileDB.Length} DB files");
                 }
 
                 var dbFiles = fileDB
@@ -249,6 +261,8 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
                     .OrderByDescending(f => f.Date)
                     .ToList();
 
+                Log.Information($"Parsed {dbFiles.Count} DB files with dates");
+
                 var filteredFiles = dbFiles
                     .Where(f => f.Date >= start && f.Date <= end)
                     .ToList();
@@ -262,13 +276,23 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
                     }
                 }
 
+                Log.Information($"Filtered to {filteredFiles.Count} DB files to query");
+                if (filteredFiles.Any())
+                {
+                    Log.Information($"Files to query: {string.Join(", ", filteredFiles.Select(f => f.Path))}");
+                }
+
                 int pageSize = req.Take ?? 0;
                 int skipCount = req.Skip ?? 0;
+                Log.Information($"Pagination - PageSize: {pageSize}, Skip: {skipCount}");
+                
                 var results = new List<ApiThirdPartyExecuteHistory>();
                 int totalRecords = 0;
 
                 foreach (var dbPath in filteredFiles)
                 {
+                    Log.Information($"Counting records in DB: {dbPath.Path}");
+                    
                     using (var dbContextDaily = _historyContextFactory.CreateContext(dbPath.Path))
                     {
                         var countQuery = dbContextDaily.Context.H_ApiThirdPartyExecuteHistories
@@ -285,15 +309,21 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
                                   && (string.IsNullOrEmpty(req.Site) || (ptr.SiteRun != null && ptr.SiteRun.Contains(req.Site)))
                                   && (string.IsNullOrEmpty(req.StepName) || (ptr.StepName != null && ptr.StepName.Contains(req.StepName))));
 
-                        totalRecords += countQuery.Count();
+                        int count = countQuery.Count();
+                        Log.Information($"DB {Path.GetFileName(dbPath.Path)} has {count} matching records");
+                        totalRecords += count;
                     }
                 }
+
+                Log.Information($"Total records across all DBs: {totalRecords}");
 
                 int currentCount = 0;
                 foreach (var dbPath in filteredFiles)
                 {
-                    if (results.Count >= pageSize) break; // Đã đủ số lượng cần lấy
+                    if (results.Count >= pageSize) break;
 
+                    Log.Information($"Fetching data from DB: {dbPath.Path}");
+                    
                     using (var dbContextDaily = _historyContextFactory.CreateContext(dbPath.Path))
                     {
                         var query = dbContextDaily.Context.H_ApiThirdPartyExecuteHistories
@@ -336,6 +366,7 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
                             .ToList();
 
                         currentCount += query.Count();
+                        Log.Information($"DB {Path.GetFileName(dbPath.Path)} returned {partialResult.Count} records, currentCount: {currentCount}");
 
                         if (partialResult.Count > 0)
                         {
@@ -343,6 +374,8 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
                         }
                     }
                 }
+
+                Log.Information($"Final result - TotalRecords: {totalRecords}, Data count: {results.Count}");
 
                 return new ResponseAllApiThirdPartyExecuteHistory
                 {
@@ -352,7 +385,8 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
             }
             catch (Exception ex)
             {
-                Log.Error($"GetAllApiThirdPartyExecuteHistories: {ex.Message}");
+                Log.Error($"GetAllApiThirdPartyExecuteHistories - Error: {ex.Message}");
+                Log.Error($"StackTrace: {ex.StackTrace}");
                 throw;
             }
         }
@@ -365,8 +399,7 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
                     return new ResponseGetAllExecuteQuerySQLHistory();
                 }
 
-                string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseLogIBox, requestGetAllExecuteHistory.TenantId ?? "");
-                _commonData.CreateFolder1(pathNow);
+                string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseLogIBox, requestGetAllExecuteHistory.TenantId ?? "");
                 if (!Directory.Exists(pathNow))
                 {
                     return new ResponseGetAllExecuteQuerySQLHistory();
@@ -525,8 +558,8 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
             try
             {
                 var fileDB = Array.Empty<string>();
-                string extractPathDay = Path.Combine(Directory.GetCurrentDirectory(), DataPath.PathBackUpDBLogDayUnZip, tenantId);
-                string extractPathMonth = Path.Combine(Directory.GetCurrentDirectory(), DataPath.PathBackUpDBLogMonthUnZip, tenantId);
+                string extractPathDay = DataPath.CombineWithRuntimeRoot(DataPath.PathBackUpDBLogDayUnZip, tenantId);
+                string extractPathMonth = DataPath.CombineWithRuntimeRoot(DataPath.PathBackUpDBLogMonthUnZip, tenantId);
                 _commonData.CreateFolder1(extractPathDay);
                 _commonData.CreateFolder1(extractPathMonth);
                 string pathDay = _createDB.GetFilePath(extractPathDay, start);
@@ -544,8 +577,8 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
                 }
                 else
                 {
-                    string pathDBZip = Path.Combine(Directory.GetCurrentDirectory(), DataPath.PathBackUpDBLogDay, tenantId);
-                    string destinationZipPath = Path.Combine(Directory.GetCurrentDirectory(), DataPath.PathBackUpDBLogMonth, tenantId);
+                    string pathDBZip = DataPath.CombineWithRuntimeRoot(DataPath.PathBackUpDBLogDay, tenantId);
+                    string destinationZipPath = DataPath.CombineWithRuntimeRoot(DataPath.PathBackUpDBLogMonth, tenantId);
                     var zipFileDays = Directory.Exists(pathDBZip) ? Directory.GetFiles(pathDBZip, "*.zip")
                             .Select(file => new FileInfo(file))
                             .Where(ptr => ptr.Name.Contains(start.ToString("yyyyMMdd")))
@@ -729,8 +762,7 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
         {
             try
             {
-                string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseLogIBox, request.TenantId);
-                _commonData.CreateFolder1(pathNow);
+                string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseLogIBox, request.TenantId);
                 var summaryDict = Enumerable.Range(0, 24)
                        .Select(hour => new ResponseExecuteHistoryDay
                        {
@@ -799,9 +831,7 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
             try
             {
 
-                string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseLogIBox, request.TenantId);
-
-                _commonData.CreateFolder1(pathNow);
+                string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseLogIBox, request.TenantId);
                 var summaryDict = Enumerable.Range(0, 24)
                        .Select(hour => new ResponseExecuteHistoryDay
                        {
@@ -919,9 +949,7 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
             try
             {
 
-                string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseLogIBox, request.TenantId);
-
-                _commonData.CreateFolder1(pathNow);
+                string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseLogIBox, request.TenantId);
                 var summaryDict = Enumerable.Range(0, 24)
                      .Select(hour => new ResponseExecuteHistoryDay
                      {
@@ -1097,8 +1125,7 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
                     return null;
                 }
 
-                string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseLogIBox, request?.TenantId ?? "");
-                _commonData.CreateFolder1(pathNow);
+                string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseLogIBox, request?.TenantId ?? "");
                 if (!Directory.Exists(pathNow))
                 {
                     return new ResponseExecuteHistoryMonth()
@@ -1165,8 +1192,7 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
                     return null;
                 }
 
-                string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseLogIBox, request.TenantId);
-                _commonData.CreateFolder1(pathNow);
+                string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseLogIBox, request.TenantId);
                 if (!Directory.Exists(pathNow))
                 {
                     return new ResponseExecuteHistoryMonth()
@@ -1349,8 +1375,7 @@ namespace IBox.History.DB.WorkflowAndApiThirdPartyHistory
                     return null;
                 }
 
-                string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseLogIBox, request.TenantId);
-                _commonData.CreateFolder1(pathNow);
+                string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseLogIBox, request.TenantId);
                 if (!Directory.Exists(pathNow))
                 {
                     return new ResponseExecuteHistoryMonth()

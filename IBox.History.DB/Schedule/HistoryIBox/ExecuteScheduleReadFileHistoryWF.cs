@@ -65,7 +65,7 @@ namespace IBox.History.DB.Schedule.HistoryIBox
             string content = "";
             try
             {
-                string path = Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryFolderLogWF);
+                string path = DataPath.CombineWithRuntimeRoot(DataPath.TemporaryFolderLogWF);
                 if (!Directory.Exists(path) || !Directory.GetFiles(path).Any())
                 {
                     return;
@@ -82,7 +82,7 @@ namespace IBox.History.DB.Schedule.HistoryIBox
                     return;
                 }
 
-                string newFolderPath = Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryMoveFolderLogWF);
+                string newFolderPath = DataPath.CombineWithRuntimeRoot(DataPath.TemporaryMoveFolderLogWF);
                 _commonData.CreateFolder1(newFolderPath);
 
                 newFilePath = Path.Combine(newFolderPath, mostRecentFile.Name);
@@ -152,7 +152,7 @@ namespace IBox.History.DB.Schedule.HistoryIBox
                     DateTime createdDate = group.Key.Date;
                     DateTime createdMinute = group.Key.Minute;
 
-                    string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseLogIBox, tenantId);
+                    string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseLogIBox, tenantId);
                     _commonData.CreateFolder1(pathNow);
                     if (!Directory.Exists(pathNow))
                     {

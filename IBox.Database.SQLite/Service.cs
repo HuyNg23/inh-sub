@@ -10,10 +10,7 @@ namespace IBox.Database.ChatBot
         {
             services.AddScoped<ICreateDB, CreateDB>();
             services.AddTransient<DBChatDayContextFactory>();
-            services.AddScoped<IDBChatDayContext<DBChatDayContext>, DBChatDayContext>();
-
             services.AddTransient<DBHistoryContextFactory>();
-            services.AddScoped<IDBHistoryContext<DBHistoryContext>, DBHistoryContext>();
             return services;
         }
     }

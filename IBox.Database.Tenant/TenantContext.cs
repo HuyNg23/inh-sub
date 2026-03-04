@@ -433,12 +433,32 @@ namespace IBox.Database.Tenant
 
             }
 
-            optionsBuilder.UseSqlServer(string.Format(this.baseConenctionString,
-                                                this.configuration?.Config?.Value?.Database?.Main.ServerName,
-                                                this.TenantInfo.TenantCode,
-                                                this.configuration?.Config?.Value?.Database?.Main.UserName,
+            var serverName = this.configuration?.Config?.Value?.Database?.Main.ServerName;
+            var databaseName = this.TenantInfo.TenantCode;
+            var userName = this.configuration?.Config?.Value?.Database?.Main.UserName;
+            var timeout = this.configuration?.Config?.Value?.Database?.Main.Timeout;
+            
+            var connectionString = string.Format(this.baseConenctionString,
+                                                serverName,
+                                                databaseName,
+                                                userName,
                                                 this.encryption.Decrypt(this.configuration?.Config?.Value?.Database?.Main?.Password ?? "SQLDefaultPassword"),
-                                                this.configuration?.Config?.Value?.Database?.Main.Timeout, additionalOptions));
+                                                timeout, 
+                                                additionalOptions);
+
+            // Log connection string (with password masked)
+            var maskedConnectionString = string.Format(this.baseConenctionString,
+                                                serverName,
+                                                databaseName,
+                                                userName,
+                                                "***MASKED***",
+                                                timeout,
+                                                additionalOptions);
+            
+            Log.Information($"[DB Connection - Tenant] Attempting to connect to tenant database with connection string: {maskedConnectionString}");
+            Log.Information($"[DB Connection - Tenant] TenantId: {this.TenantInfo.Id}, ServerName: {serverName}, DatabaseName: {databaseName}, UserName: {userName}, Timeout: {timeout}");
+
+            optionsBuilder.UseSqlServer(connectionString);
         }
     }
 }

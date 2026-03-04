@@ -132,7 +132,7 @@ namespace IBox.ChatBot.History.History
 
                 DateTime dateTimeFrom = _commonData.ToDate1(requestGetChatSessionDaily.CreatedDateFrom);
 
-                string pathcurrent = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseChatBot, requestGetChatSessionDaily.TenantId);
+                string pathcurrent = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseChatBot, requestGetChatSessionDaily.TenantId);
                 string filePathcurrent = _commonData.GetFilePath(pathcurrent, dateTimeFrom);
                 List<string> fileDB = _changeDBChatDay.ConvertPathDB(filePathcurrent, dateTimeFrom, configChat);
                 List<GetChatSessionDaily> getChatSessionDailies = GetChatSessionsPagedParallel(fileDB, requestGetChatSessionDaily);
@@ -501,7 +501,7 @@ namespace IBox.ChatBot.History.History
                 }
 
                 DateTime getDateTime = _commonData.ToDate1(requestGetChatMessageDaily.DateTimeCurrent);
-                string pathcurrent = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseChatBot, requestGetChatMessageDaily.TenantId);
+                string pathcurrent = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseChatBot, requestGetChatMessageDaily.TenantId);
                 string filePathcurrent = _commonData.GetFilePath(pathcurrent, getDateTime);
                 string dbName = ConsistentHashing.GetChatBotDB(requestGetChatMessageDaily.SenderId);
                 string fileName = Path.GetFileNameWithoutExtension(dbName);
@@ -515,7 +515,7 @@ namespace IBox.ChatBot.History.History
                     string zipFilePath = Path.Combine(zipFolder, fileName1);
 
                     string pattern = $@"^{fileName}(_\d+)?\.db$";
-                    string extractPath = Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryFolderZip, requestGetChatMessageDaily.TenantId);
+                    string extractPath = DataPath.CombineWithRuntimeRoot(DataPath.TemporaryFolderZip, requestGetChatMessageDaily.TenantId);
 
                     _commonData.ExtractFileZipPattern(zipFilePath, extractPath, pattern);
                     string filePathcurrent1 = _commonData.GetFilePath(extractPath, getDateTime);

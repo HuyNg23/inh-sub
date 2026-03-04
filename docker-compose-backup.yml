@@ -1,0 +1,155 @@
+# Docker Compose cho IBox Services
+# Giúp test local trước khi deploy lên K8s
+# Mapping ports giống IIS setup
+
+version: '3.8'
+
+services:
+  # IBox.Client - Port 5001
+  ibox-client:
+    build:
+      context: .
+      dockerfile: IBox.Client/Dockerfile
+    ports:
+      - "5001:5000"
+    # environment:
+    #   - ASPNETCORE_ENVIRONMENT=Development
+    #   - ASPNETCORE_URLS=http://+:5000
+    #   - IBoxConfig__Database__ServerName=sql2022,1433
+    #   - IBoxConfig__Database__DatabaseName=${DB_NAME:-IBOX_MA01}
+    #   - IBoxConfig__Database__UserName=${DB_USER:-sa}
+    #   - IBoxConfig__Database__Password=${DB_PASSWORD}
+    #   # Service URLs cho inter-service communication
+    #   - ServiceUrls__RestService=http://ibox-restservice:5000
+    #   - ServiceUrls__LogService=http://ibox-logservice:5000
+    #   - ServiceUrls__RootClient=http://ibox-root-client:5000
+    #   - ServiceUrls__Schedule=http://ibox-schedule:5000
+    #   - ServiceUrls__StoreService=http://ibox-storeservice:5000
+    volumes:
+      - client_logs:/app/Logs
+    networks:
+      - ibox-network
+
+  # IBox.LogService - Port 5002
+  ibox-logservice:
+    build:
+      context: .
+      dockerfile: IBox.LogService/Dockerfile
+    ports:
+      - "5002:5000"
+    # environment:
+    #   - ASPNETCORE_ENVIRONMENT=Development
+    #   - ASPNETCORE_URLS=http://+:5000
+    #   - IBoxConfig__Database__ServerName=sql2022,1433
+    #   - IBoxConfig__Database__DatabaseName=${DB_NAME:-IBOX_MA01}
+    #   - IBoxConfig__Database__UserName=${DB_USER:-sa}
+    #   - IBoxConfig__Database__Password=${DB_PASSWORD}
+    volumes:
+      - service_logs:/app/Logs
+      - service_chatbot_logs:/app/DataBaseChatBot
+      - service_ibox_logs:/app/DatabaseLogIBox
+    networks:
+      - ibox-network
+
+  # IBox.RestService - Port 5003
+  ibox-restservice:
+    build:
+      context: .
+      dockerfile: IBox.RestService/Dockerfile
+    ports:
+      - "5003:5000"
+    # environment:
+    #   - ASPNETCORE_ENVIRONMENT=Development
+    #   - ASPNETCORE_URLS=http://+:5000
+    #   - IBoxConfig__Database__ServerName=sql2022,1433
+    #   - IBoxConfig__Database__DatabaseName=${DB_NAME:-IBOX_MA01}
+    #   - IBoxConfig__Database__UserName=${DB_USER:-sa}
+    #   - IBoxConfig__Database__Password=${DB_PASSWORD}
+    #   - ServiceUrls__LogService=http://ibox-logservice:5000
+    #   - ServiceUrls__StoreService=http://ibox-storeservice:5000
+    volumes:
+      - service_rest_logs:/app/Logs
+      - service_ibox_logs:/app/DatabaseLogIBox
+    networks:
+      - ibox-network
+    depends_on:
+      - ibox-logservice
+
+  # IBox.Root.Client - Port 5004
+  ibox-root-client:
+    build:
+      context: .
+      dockerfile: IBox.Root.Client/Dockerfile
+    ports:
+      - "5004:5000"
+    # environment:
+    #   - ASPNETCORE_ENVIRONMENT=Development
+    #   - ASPNETCORE_URLS=http://+:5000
+    #   - IBoxConfig__Database__ServerName=sql2022,1433
+    #   - IBoxConfig__Database__DatabaseName=${DB_NAME:-IBOX_MA01}
+    #   - IBoxConfig__Database__UserName=${DB_USER:-sa}
+    #   - IBoxConfig__Database__Password=${DB_PASSWORD}
+    #   - ServiceUrls__RestService=http://ibox-restservice:5000
+    #   - ServiceUrls__Schedule=http://ibox-schedule:5000
+    volumes:
+      - root_client_logs:/app/Logs
+    networks:
+      - ibox-network
+
+  # IBox.Schedule - Port 5005
+  ibox-schedule:
+    build:
+      context: .
+      dockerfile: IBox.Schedule/Dockerfile
+    ports:
+      - "5005:5000"
+    # environment:
+    #   - ASPNETCORE_ENVIRONMENT=Development
+    #   - ASPNETCORE_URLS=http://+:5000
+    #   - IBoxConfig__Database__ServerName=sql2022,1433
+    #   - IBoxConfig__Database__DatabaseName=${DB_NAME:-IBOX_MA01}
+    #   - IBoxConfig__Database__UserName=${DB_USER:-sa}
+    #   - IBoxConfig__Database__Password=${DB_PASSWORD}
+    #   - ServiceUrls__RestService=http://ibox-restservice:5000
+    #   - ServiceUrls__RootClient=http://ibox-root-client:5000
+    volumes:
+      - schedule_logs:/app/Logs
+    networks:
+      - ibox-network
+
+  # IBox.StoreService - Port 5006
+  ibox-storeservice:
+    build:
+      context: .
+      dockerfile: IBox.StoreService/Dockerfile
+    ports:
+      - "5006:5000"
+    # environment:
+    #   - ASPNETCORE_ENVIRONMENT=Development
+    #   - ASPNETCORE_URLS=http://+:5000
+    #   - IBoxConfig__Database__ServerName=sql2022,1433
+    #   - IBoxConfig__Database__DatabaseName=${DB_NAME:-IBOX_MA01}
+    #   - IBoxConfig__Database__UserName=${DB_USER:-sa}
+    #   - IBoxConfig__Database__Password=${DB_PASSWORD}
+    #   - ServiceUrls__RestService=http://ibox-restservice:5000
+    volumes:
+      - service_store_logs:/app/Logs
+      - service_store_wwwroot:/app/wwwroot
+    networks:
+      - ibox-network
+
+networks:
+  ibox-network:
+    external: true
+
+volumes:
+  ibox-data:
+  client_logs:
+  service_logs:
+  service_chatbot_logs:
+  service_ibox_logs:
+  service_rest_logs:
+  root_client_logs:
+  schedule_logs:
+  service_store_logs:
+  service_store_wwwroot:

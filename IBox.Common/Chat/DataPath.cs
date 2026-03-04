@@ -2,6 +2,33 @@
 {
     public class DataPath
     {
+        public static string GetRuntimeRoot()
+        {
+            var configuredRoot = Environment.GetEnvironmentVariable("IBOX_DATA_ROOT");
+            if (string.IsNullOrWhiteSpace(configuredRoot))
+            {
+                return Directory.GetCurrentDirectory();
+            }
+
+            return Path.IsPathRooted(configuredRoot)
+                ? configuredRoot
+                : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, configuredRoot));
+        }
+
+        public static string CombineWithRuntimeRoot(params string[] segments)
+        {
+            var validSegments = segments
+                .Where(ptr => !string.IsNullOrWhiteSpace(ptr))
+                .ToArray();
+
+            if (validSegments.Length == 0)
+            {
+                return GetRuntimeRoot();
+            }
+
+            return Path.Combine(new[] { GetRuntimeRoot() }.Concat(validSegments).ToArray());
+        }
+
         //Thư mục chứa data base của chat bot
         public const string DataBaseChatBot = "DataBaseChatBot";
 

@@ -13,6 +13,8 @@ using IBox.Schedule.Library;
 using IBox.Schedule.Library.HandleSqlDependency;
 using IBox.Workflow;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Quartz;
+using Quartz.Simpl;
 using Serilog;
 using System.Text;
 
@@ -156,6 +158,19 @@ builder.Host.UseSerilog((context, services, configuration) =>
             )
         );
 });
+
+builder.Services.AddQuartz(q =>
+{
+    q.UseJobFactory<MicrosoftDependencyInjectionJobFactory>();
+});
+
+builder.Services.AddSingleton(provider =>
+{
+    var schedulerFactory = provider.GetRequiredService<ISchedulerFactory>();
+    return schedulerFactory.GetScheduler().Result;
+});
+
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var app = builder.Build();
 

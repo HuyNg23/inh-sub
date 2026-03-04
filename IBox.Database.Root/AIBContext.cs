@@ -1,6 +1,7 @@
 ﻿using IBox.Common.Objects;
 using IBox.Common.Security;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace IBox.Database.Root
 {
@@ -29,14 +30,32 @@ namespace IBox.Database.Root
 
             }
 
-            optionsBuilder.UseSqlServer(string.Format(this.baseConenctionString,
-                                                this.configuration?.Config?.Value?.Database?.Main.ServerName,
-                                                this.configuration?.Config?.Value?.Database?.Main.DatabaseName,
-                                                this.configuration?.Config?.Value?.Database?.Main.UserName,
+            var serverName = this.configuration?.Config?.Value?.Database?.Main.ServerName;
+            var databaseName = this.configuration?.Config?.Value?.Database?.Main.DatabaseName;
+            var userName = this.configuration?.Config?.Value?.Database?.Main.UserName;
+            var timeout = this.configuration?.Config?.Value?.Database?.Main.Timeout;
+            
+            var connectionString = string.Format(this.baseConenctionString,
+                                                serverName,
+                                                databaseName,
+                                                userName,
                                                 this.encryption.Decrypt(this.configuration?.Config?.Value?.Database?.Main?.Password ?? "SQLDefaultPassword"),
-                                                this.configuration?.Config?.Value?.Database?.Main.Timeout,
-                                                additionalOptions
-                                                ));
+                                                timeout,
+                                                additionalOptions);
+
+            // Log connection string (with password masked)
+            var maskedConnectionString = string.Format(this.baseConenctionString,
+                                                serverName,
+                                                databaseName,
+                                                userName,
+                                                "***MASKED***",
+                                                timeout,
+                                                additionalOptions);
+            
+            Log.Information($"[DB Connection] Attempting to connect to database with connection string: {maskedConnectionString}");
+            Log.Information($"[DB Connection] ServerName: {serverName}, DatabaseName: {databaseName}, UserName: {userName}, Timeout: {timeout}");
+
+            optionsBuilder.UseSqlServer(connectionString);
         }
 
         public void Update()

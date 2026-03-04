@@ -69,8 +69,8 @@ namespace IBox.History.DB.Schedule.HistoryIBox
         {
             try
             {
-                //string destinationZipPath = Path.Combine(Directory.GetCurrentDirectory(), DataPath.PathBackUpDBLogMonth, tenantId);
-                string destinationZipPath = Path.Combine(Directory.GetCurrentDirectory(), DataPath.PathBackUpDBLogDay, tenantId);
+                //string destinationZipPath = DataPath.CombineWithRuntimeRoot(DataPath.PathBackUpDBLogMonth, tenantId);
+                string destinationZipPath = DataPath.CombineWithRuntimeRoot(DataPath.PathBackUpDBLogDay, tenantId);
                 if (!Directory.Exists(destinationZipPath))
                 {
                     return;
@@ -107,7 +107,7 @@ namespace IBox.History.DB.Schedule.HistoryIBox
         {
             try
             {
-                string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseLogIBox, tenantId);
+                string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseLogIBox, tenantId);
                 List<string> directories = new List<string>();
                 string path = "";
                 for (int i = _configuration.Config.Value.ZipFileDay; i < 6; i++)
@@ -127,7 +127,7 @@ namespace IBox.History.DB.Schedule.HistoryIBox
 
                 try
                 {
-                    string pathDBZip = Path.Combine(Directory.GetCurrentDirectory(), DataPath.PathBackUpDBLogDay, tenantId);
+                    string pathDBZip = DataPath.CombineWithRuntimeRoot(DataPath.PathBackUpDBLogDay, tenantId);
                     string zipFileName = $"BackupHistory{path}.zip";
                     string zipFilePath = Path.Combine(pathDBZip, zipFileName);
                     _commonData.CreateFolder(zipFilePath);
@@ -166,9 +166,9 @@ namespace IBox.History.DB.Schedule.HistoryIBox
                 //Kiểm tra các file trong thư mục move > 3 ngày thì xóa
                 List<string> lstPathMove = new List<string>()
                 {
-                    Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryMoveFolderLogAPI),
-                    Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryMoveFolderLogWF),
-                    Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryMoveFolderLogQuerySQL)
+                    DataPath.CombineWithRuntimeRoot(DataPath.TemporaryMoveFolderLogAPI),
+                    DataPath.CombineWithRuntimeRoot(DataPath.TemporaryMoveFolderLogWF),
+                    DataPath.CombineWithRuntimeRoot(DataPath.TemporaryMoveFolderLogQuerySQL)
                 };
                 foreach (var folderPathMove in lstPathMove)
                 {
@@ -229,8 +229,8 @@ namespace IBox.History.DB.Schedule.HistoryIBox
             try
             {
                 var today = DateTime.Today;
-                string pathDBZip = Path.Combine(Directory.GetCurrentDirectory(), DataPath.PathBackUpDBLogDay, tenantId);
-                string destinationZipPath = Path.Combine(Directory.GetCurrentDirectory(), DataPath.PathBackUpDBLogMonth, tenantId);
+                string pathDBZip = DataPath.CombineWithRuntimeRoot(DataPath.PathBackUpDBLogDay, tenantId);
+                string destinationZipPath = DataPath.CombineWithRuntimeRoot(DataPath.PathBackUpDBLogMonth, tenantId);
 
                 if (!Directory.Exists(pathDBZip) || !Directory.GetFiles(pathDBZip).Any())
                 {
@@ -336,7 +336,7 @@ namespace IBox.History.DB.Schedule.HistoryIBox
         {
             try
             {
-                string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseLogIBox, tenantId);
+                string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseLogIBox, tenantId);
                 _commonData.CreateFolder1(pathNow);
 
                 if (!Directory.Exists(pathNow)) return;
@@ -366,7 +366,7 @@ namespace IBox.History.DB.Schedule.HistoryIBox
         {
             try
             {
-                string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseLogIBox, tenantId);
+                string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseLogIBox, tenantId);
                 _commonData.CreateFolder1(pathNow);
 
                 if (!Directory.Exists(pathNow)) return;
@@ -396,7 +396,7 @@ namespace IBox.History.DB.Schedule.HistoryIBox
         {
             try
             {
-                string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseLogIBox, tenantId);
+                string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseLogIBox, tenantId);
                 _commonData.CreateFolder1(pathNow);
 
                 if (!Directory.Exists(pathNow)) return;

@@ -22,10 +22,10 @@ namespace IBox.History.DB.Schedule.HistoryIBox
             {
                 foreach (var tenant in IBGlobalConfig.Tenants)
                 {
-                    string pathDayUnZip = Path.Combine(Directory.GetCurrentDirectory(), DataPath.PathBackUpDBLogDayUnZip, tenant.Id);
+                    string pathDayUnZip = DataPath.CombineWithRuntimeRoot(DataPath.PathBackUpDBLogDayUnZip, tenant.Id);
                     _handleJobsSchedule.RemoveFileUnZip(pathDayUnZip);
 
-                    string pathMonthUnZip = Path.Combine(Directory.GetCurrentDirectory(), DataPath.PathBackUpDBLogMonthUnZip, tenant.Id);
+                    string pathMonthUnZip = DataPath.CombineWithRuntimeRoot(DataPath.PathBackUpDBLogMonthUnZip, tenant.Id);
                     _handleJobsSchedule.RemoveFileUnZip(pathMonthUnZip);
                 }
             }

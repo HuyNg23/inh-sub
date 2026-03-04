@@ -13,6 +13,8 @@ using IBox.ScheduleHistory;
 using IBox.Workflow;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.DependencyInjection;
+using Quartz;
+using Quartz.Simpl;
 using Serilog;
 using System.Text;
 using System.Text.Json;
@@ -106,6 +108,19 @@ builder.Host.UseSerilog((context, services, configuration) =>
             )
         );
 });
+
+builder.Services.AddQuartz(q =>
+{
+    q.UseJobFactory<MicrosoftDependencyInjectionJobFactory>();
+});
+
+builder.Services.AddSingleton(provider =>
+{
+    var schedulerFactory = provider.GetRequiredService<ISchedulerFactory>();
+    return schedulerFactory.GetScheduler().Result;
+});
+
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var app = builder.Build();
 

@@ -54,7 +54,7 @@ namespace IBox.LogService.Controller.ChatBot
                     _changeDBChatDay.InputICIsSupport(requestInsertDataChatBot);
                 }
 
-                string path = Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryFolder, requestInsertDataChatBot.tenantId);
+                string path = DataPath.CombineWithRuntimeRoot(DataPath.TemporaryFolder, requestInsertDataChatBot.tenantId);
                 _commonData.CreateFolder1(path);
                 int valueSecond = _commonData.ShowSecond();
                 for (int i = 0; i < 30; i++)
@@ -233,7 +233,7 @@ namespace IBox.LogService.Controller.ChatBot
                     return;
                 }
 
-                string path = Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryFolderCustomer, tenantId);
+                string path = DataPath.CombineWithRuntimeRoot(DataPath.TemporaryFolderCustomer, tenantId);
                 _commonData.CreateFolder1(path);
                 int valueSecond = _commonData.ShowSecond();
                 for (int i = 0; i < 30; i++)

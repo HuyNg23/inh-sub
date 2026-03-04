@@ -99,7 +99,7 @@ namespace IBox.ChatBot.DB.DBChatDay
         {
             try
             {
-                string pathcurrent = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseChatBot, tenantId);
+                string pathcurrent = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseChatBot, tenantId);
                 string filePathcurrent = _commonData.GetFilePath(pathcurrent, DateTime.Now);
                 string PathdbDayNow = Path.Combine(filePathcurrent, $"chatbot.db");
 
@@ -161,7 +161,7 @@ namespace IBox.ChatBot.DB.DBChatDay
                     int day = 0;
                     while (day < 3)
                     {
-                        string basePath = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseChatBot, requestInserDataChatBot.tenantId);
+                        string basePath = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseChatBot, requestInserDataChatBot.tenantId);
                         string filePath = _commonData.GetFilePath(basePath, DateTime.Now.AddDays(-day));
                         string pathYesterday = Path.Combine(filePath, $"chatbot.db");
                         if (!File.Exists(pathYesterday))
@@ -183,7 +183,7 @@ namespace IBox.ChatBot.DB.DBChatDay
                     }
                 }
 
-                string pathcurrent = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseChatBot, requestInserDataChatBot.tenantId);
+                string pathcurrent = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseChatBot, requestInserDataChatBot.tenantId);
                 string filePathcurrent = _commonData.GetFilePath(pathcurrent, DateTime.Now);
                 string PathdbDayNow = Path.Combine(filePathcurrent, $"chatbot.db");
                 using (var dbContextDaily = _contextFactory.CreateContext(PathdbDayNow))
@@ -275,7 +275,7 @@ namespace IBox.ChatBot.DB.DBChatDay
                 {
                     try
                     {
-                        string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseChatBot, tenantId);
+                        string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseChatBot, tenantId);
                         string filePathNow = _commonData.GetFilePath(pathNow, DateTime.Now.AddDays(-day));
                         string PathdbDayNow = Path.Combine(filePathNow, $"chatbot.db");
 
@@ -365,7 +365,7 @@ namespace IBox.ChatBot.DB.DBChatDay
                 {
                     try
                     {
-                        string basePath = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseChatBot, tenantId);
+                        string basePath = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseChatBot, tenantId);
                         string filePath = _commonData.GetFilePath(basePath, DateTime.Now.AddDays(-day));
                         string PathdbDayDb = Path.Combine(filePath, $"chatbot.db");
 
@@ -469,7 +469,7 @@ namespace IBox.ChatBot.DB.DBChatDay
                     {
                         try
                         {
-                            string pathcurrent = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseChatBot, tenant.Id);
+                            string pathcurrent = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseChatBot, tenant.Id);
                             string filePathDay = _commonData.GetFilePath(pathcurrent, DateTime.Now.AddDays(-day));
                             if (!Directory.Exists(filePathDay))
                             {
@@ -550,7 +550,7 @@ namespace IBox.ChatBot.DB.DBChatDay
             {
                 bool checkUpdate = false;
                 var activeDates = new List<DateTime>();
-                string pathcurrent = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseChatBot, tenantId);
+                string pathcurrent = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseChatBot, tenantId);
                 var currentDay = DateTime.Now.AddDays(-day);
                 var today = DateTime.Now.Date;
 
@@ -948,7 +948,7 @@ namespace IBox.ChatBot.DB.DBChatDay
                     return new List<ResponseChatBotGetSenderId>();
                 }
 
-                string pathcurrent = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseChatBot, tenantId);
+                string pathcurrent = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseChatBot, tenantId);
                 string filePathcurrent = _commonData.GetFilePath(pathcurrent, DateTime.Now);
                 string PathdbDayDb = Path.Combine(filePathcurrent, $"chatbot.db");
                 List<ResponseChatBotGetSenderId> lst_responseChatBotGetSender = new List<ResponseChatBotGetSenderId>();
@@ -989,7 +989,7 @@ namespace IBox.ChatBot.DB.DBChatDay
             try
             {
                 DateTime dateTime = _commonData.ToDate1(dateTimeCurrent);
-                string pathcurrent = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseChatBot, tenantId);
+                string pathcurrent = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseChatBot, tenantId);
                 string filePathcurrent = _commonData.GetFilePath(pathcurrent, dateTime);
                 var configChat = IBGlobalTenantConfig.ConfigChatBots.FirstOrDefault(ptr => ptr.tenant_id == tenantId);
                 if (configChat == null)
@@ -1233,7 +1233,7 @@ namespace IBox.ChatBot.DB.DBChatDay
                 {
                     try
                     {
-                        string pathNow = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseChatBot, configChat.tenant_id);
+                        string pathNow = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseChatBot, configChat.tenant_id);
                         List<string> directories = new List<string>();
                         string path = "";
                         for (int i = 2; i < 6; i++)
@@ -1329,7 +1329,7 @@ namespace IBox.ChatBot.DB.DBChatDay
             {
                 foreach (var configChat in IBGlobalTenantConfig.ConfigChatBots)
                 {
-                    string extractPath = Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryFolderZip, configChat.tenant_id);
+                    string extractPath = DataPath.CombineWithRuntimeRoot(DataPath.TemporaryFolderZip, configChat.tenant_id);
                     if (!Directory.Exists(extractPath))
                     {
                         continue;
@@ -1374,7 +1374,7 @@ namespace IBox.ChatBot.DB.DBChatDay
             string filePathOld = "";
             try
             {
-                string path = Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryFolder, configChat.tenant_id);
+                string path = DataPath.CombineWithRuntimeRoot(DataPath.TemporaryFolder, configChat.tenant_id);
 
                 if (!Directory.Exists(path) || !Directory.GetFiles(path).Any())
                 {
@@ -1392,7 +1392,7 @@ namespace IBox.ChatBot.DB.DBChatDay
                     return;
                 }
 
-                string newFolderPath = Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryMoveFolder);
+                string newFolderPath = DataPath.CombineWithRuntimeRoot(DataPath.TemporaryMoveFolder);
                 filePathOld = mostRecentFile.FullName;
 
                 _commonData.CreateFolder1(newFolderPath);
@@ -1982,7 +1982,7 @@ namespace IBox.ChatBot.DB.DBChatDay
             try
             {
                 string zipFilePath = GetZipFilePathForDate(dateTime, configChat);  // Hàm này cần lấy đường dẫn file zip tương ứng với ngày
-                string extractPath = Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryFolderZip, configChat.tenant_id);
+                string extractPath = DataPath.CombineWithRuntimeRoot(DataPath.TemporaryFolderZip, configChat.tenant_id);
 
                 if (!File.Exists(zipFilePath))
                 {
@@ -2242,7 +2242,7 @@ namespace IBox.ChatBot.DB.DBChatDay
 
                 string content = "";
 
-                string path = Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryFolderCustomer, configChat.tenant_id);
+                string path = DataPath.CombineWithRuntimeRoot(DataPath.TemporaryFolderCustomer, configChat.tenant_id);
 
                 if (!Directory.Exists(path) || !Directory.GetFiles(path).Any())
                 {
@@ -2260,7 +2260,7 @@ namespace IBox.ChatBot.DB.DBChatDay
                     return;
                 }
 
-                string newFolderPath = Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryMoveFolderCustomer);
+                string newFolderPath = DataPath.CombineWithRuntimeRoot(DataPath.TemporaryMoveFolderCustomer);
                 _commonData.CreateFolder1(newFolderPath);
 
                 newFilePath = Path.Combine(newFolderPath, mostRecentFile.Name);
@@ -2696,7 +2696,7 @@ namespace IBox.ChatBot.DB.DBChatDay
                     try
                     {
                         var sessions = new List<KeyValuePair<string, SessionObj>>();
-                        string basePath = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseChatBot, tenantId);
+                        string basePath = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseChatBot, tenantId);
                         var datesToCheck = new[] { DateTime.Now, DateTime.Now.AddDays(-1) };
 
                         foreach (var date in datesToCheck)
@@ -3160,7 +3160,7 @@ namespace IBox.ChatBot.DB.DBChatDay
                 {
                     try
                     {
-                        string basePath = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseChatBot, tenantId);
+                        string basePath = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseChatBot, tenantId);
                         string filePath = _commonData.GetFilePath(basePath, DateTime.Now.AddDays(-i));
                         string PathdbDayDb = Path.Combine(filePath, $"chatbot.db");
                         if (!File.Exists(PathdbDayDb))

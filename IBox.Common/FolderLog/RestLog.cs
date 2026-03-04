@@ -54,7 +54,7 @@ namespace IBox.Common.FolderLog
                         return;
 
                     case "LogService":
-                        string path = Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryFolderLogWF);
+                        string path = DataPath.CombineWithRuntimeRoot(DataPath.TemporaryFolderLogWF);
 
                         if (_commonData != null)
                         {
@@ -96,7 +96,7 @@ namespace IBox.Common.FolderLog
                     case "ClientBEService":
                         return;
                     case "LogService":
-                        string path = Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryFolderLogAPI);
+                        string path = DataPath.CombineWithRuntimeRoot(DataPath.TemporaryFolderLogAPI);
 
                         if (_commonData != null)
                         {
@@ -141,7 +141,7 @@ namespace IBox.Common.FolderLog
                     case "ClientBEService":
                         return;
                     case "LogService":
-                        string path = Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryFolderLogQuerySQL);
+                        string path = DataPath.CombineWithRuntimeRoot(DataPath.TemporaryFolderLogQuerySQL);
 
                         if (_commonData != null)
                         {

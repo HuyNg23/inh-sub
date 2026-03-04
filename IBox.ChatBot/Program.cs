@@ -12,6 +12,9 @@ using IBox.Permissions;
 using IBox.Schedule.Library;
 using IBox.Schedule.Library.HandleSqlDependency;
 using IBox.Workflow;
+using Microsoft.EntityFrameworkCore;
+using Quartz;
+using Quartz.Simpl;
 using Serilog;
 using System.Text;
 
@@ -75,6 +78,33 @@ builder.Host.UseSerilog((context, services, configuration) =>
             )
         );
 });
+
+builder.Services.AddSingleton(provider =>
+{
+    var optionsBuilder = new DbContextOptionsBuilder<DBChatDayContext>();
+    optionsBuilder.UseSqlite("Data Source=:memory:");
+    return optionsBuilder.Options;
+});
+
+builder.Services.AddSingleton(provider =>
+{
+    var optionsBuilder = new DbContextOptionsBuilder<DBHistoryContext>();
+    optionsBuilder.UseSqlite("Data Source=:memory:");
+    return optionsBuilder.Options;
+});
+
+builder.Services.AddQuartz(q =>
+{
+    q.UseJobFactory<MicrosoftDependencyInjectionJobFactory>();
+});
+
+builder.Services.AddSingleton(provider =>
+{
+    var schedulerFactory = provider.GetRequiredService<ISchedulerFactory>();
+    return schedulerFactory.GetScheduler().Result;
+});
+
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var app = builder.Build();
 

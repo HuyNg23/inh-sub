@@ -89,9 +89,9 @@ namespace IBox.Database.Tenant.ServicesManager
 
             var pathMappings = new Dictionary<string, string>
                 {
-                    { "WF", Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryFolderLogWF) },
-                    { "SQL", Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryFolderLogQuerySQL) },
-                    { "API", Path.Combine(Directory.GetCurrentDirectory(), DataPath.TemporaryFolderLogAPI) }
+                    { "WF", DataPath.CombineWithRuntimeRoot(DataPath.TemporaryFolderLogWF) },
+                    { "SQL", DataPath.CombineWithRuntimeRoot(DataPath.TemporaryFolderLogQuerySQL) },
+                    { "API", DataPath.CombineWithRuntimeRoot(DataPath.TemporaryFolderLogAPI) }
                 };
 
             while (!token.IsCancellationRequested)

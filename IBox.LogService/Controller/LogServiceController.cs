@@ -406,7 +406,6 @@ namespace IBox.LogService.Controller
                 var tenantID = Request.Headers.FirstOrDefault(ptr => ptr.Key == RequestHeaderKey.Tenant.ToString()).Value.ToString() ?? string.Empty;
                 request.Body.TenantId = tenantID;
                 DateTime dateTime = _commonData.ToDate1(request.Body.SelectDate);
-                List<ResponseExecuteHistoryDay> historyAPIDaySQLServers = new List<ResponseExecuteHistoryDay>();
 
                 var summaryDict = Enumerable.Range(0, 24)
                       .Select(hour => new ResponseExecuteHistoryDay
@@ -420,7 +419,7 @@ namespace IBox.LogService.Controller
                 if (dateTime.ToString("yyyy-MM-dd") != DateTime.Now.ToString("yyyy-MM-dd"))
                 {
                     //Lấy data từ history sql server
-                    historyAPIDaySQLServers = _handelWFAndAPI.GetApiThirdPartyExecuteHistoryDaySQLServer(request.Body);
+                    var historyAPIDaySQLServers = _handelWFAndAPI.GetApiThirdPartyExecuteHistoryDaySQLServer(request.Body);
                     return historyAPIDaySQLServers;
                 }
                 else
@@ -628,9 +627,38 @@ namespace IBox.LogService.Controller
         [IBoxAuthorization]
         public ResponseAllApiThirdPartyExecuteHistory GetApiThirdPartyExecuteHistoriesDetail(RequestGetAllExecuteThirdPartyHistory request)
         {
-            var tenantID = Request.Headers.FirstOrDefault(ptr => ptr.Key == RequestHeaderKey.Tenant.ToString()).Value.ToString() ?? string.Empty;
-            request.TenantId = tenantID;
-            return _handelWFAndAPI.GetAllApiThirdPartyExecuteHistories(request);
+            try
+            {
+                Log.Information($"GetApiThirdPartyExecuteHistoriesDetail - Start");
+                Log.Information($"Request: {JsonConvert.SerializeObject(request)}");
+                
+                var tenantID = Request.Headers.FirstOrDefault(ptr => ptr.Key == RequestHeaderKey.Tenant.ToString()).Value.ToString() ?? string.Empty;
+                Log.Information($"TenantID from header: {tenantID}");
+                
+                request.TenantId = tenantID;
+                Log.Information($"Request with TenantId: {JsonConvert.SerializeObject(request)}");
+                
+                var result = _handelWFAndAPI.GetAllApiThirdPartyExecuteHistories(request);
+                
+                Log.Information($"Result - TotalRecords: {result?.TotalReCords ?? 0}, Data count: {result?.Data?.Count ?? 0}");
+                
+                if (result?.Data != null && result.Data.Count > 0)
+                {
+                    Log.Information($"First record sample: {JsonConvert.SerializeObject(result.Data.FirstOrDefault())}");
+                }
+                else
+                {
+                    Log.Warning($"No data returned from GetAllApiThirdPartyExecuteHistories");
+                }
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"GetApiThirdPartyExecuteHistoriesDetail - Error: {ex.Message}");
+                Log.Error($"StackTrace: {ex.StackTrace}");
+                throw;
+            }
         }
 
         [HttpPost("GetAllWorkflowExecuteHistory")]

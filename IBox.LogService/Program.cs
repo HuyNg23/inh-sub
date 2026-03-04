@@ -98,23 +98,32 @@ builder.Host.UseSerilog((context, services, configuration) =>
         );
 });
 
-string path = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseChatBot);
-string pathHistory = Path.Combine(Directory.GetCurrentDirectory(), DataPath.DataBaseLogIBox);
+string path = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseChatBot);
+string pathHistory = DataPath.CombineWithRuntimeRoot(DataPath.DataBaseLogIBox);
 
 if (!Directory.Exists(path))
 {
     Directory.CreateDirectory(path);
 }
 
-builder.Services.AddDbContext<DBChatDayContext>(options =>
-options.UseSqlite($"Data Source={Path.Combine(path, $"chatbot.db")}"));
-builder.Services.AddDbContext<DBHistoryContext>(options =>
-options.UseSqlite($"Data Source={Path.Combine(path, $"history.db")}"));
+builder.Services.AddSingleton(provider =>
+{
+    var optionsBuilder = new DbContextOptionsBuilder<DBChatDayContext>();
+    optionsBuilder.UseSqlite("Data Source=:memory:");
+    return optionsBuilder.Options;
+});
+
+builder.Services.AddSingleton(provider =>
+{
+    var optionsBuilder = new DbContextOptionsBuilder<DBHistoryContext>();
+    optionsBuilder.UseSqlite("Data Source=:memory:");
+    return optionsBuilder.Options;
+});
 
 builder.Services.Configure<QuartzOptions>(opts =>
 {
-    opts.Scheduling.IgnoreDuplicates = true; // default: false
-    opts.Scheduling.OverWriteExistingData = true; // default: true
+    opts.Scheduling.IgnoreDuplicates = true;
+    opts.Scheduling.OverWriteExistingData = true;
 });
 builder.Services.AddQuartz(q =>
 {

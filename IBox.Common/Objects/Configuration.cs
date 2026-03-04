@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using Serilog;
 
 namespace IBox.Common.Objects
 {
@@ -20,6 +21,12 @@ namespace IBox.Common.Objects
         public Configuration(IOptions<Configuration> configuration)
         {
             this.Config = configuration;
+            
+            // Log configuration values on initialization
+            Log.Information($"[Configuration] Initializing with ServerName: '{this.Config?.Value?.Database?.Main?.ServerName ?? "NULL"}', " +
+                           $"DatabaseName: '{this.Config?.Value?.Database?.Main?.DatabaseName ?? "NULL"}', " +
+                           $"UserName: '{this.Config?.Value?.Database?.Main?.UserName ?? "NULL"}', " +
+                           $"Timeout: {this.Config?.Value?.Database?.Main?.Timeout ?? 0}");
         }
     }
 

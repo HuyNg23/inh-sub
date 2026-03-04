@@ -6,6 +6,7 @@ using IBox.Database.Tenant.Tables;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Oracle.ManagedDataAccess.Client;
+using Serilog;
 using System.Data.Odbc;
 using System.Text.Json;
 
@@ -219,6 +220,7 @@ namespace IBox.Database.DBC.Implementation
                         connectionInfo?.Catalog,
                         connectionInfo?.Username,
                         encryption.Decrypt(connectionInfo?.Password ?? ""));
+                        Log.Information($"[DB Connection - PostgreSQL] Server: {connectionInfo?.Address}, Database: {connectionInfo?.Catalog}");
                         optionsBuilder.UseNpgsql(connectStringPostgre);
                         break;
 
@@ -228,6 +230,7 @@ namespace IBox.Database.DBC.Implementation
                         connectionInfo?.Username,
                         encryption.Decrypt(connectionInfo?.Password ?? ""),
                         connectionInfo?.Catalog);
+                        Log.Information($"[DB Connection - MySQL] Server: {connectionInfo?.Address}, Database: {connectionInfo?.Catalog}");
                         optionsBuilder.UseMySql(connectStringMySQL, new MySqlServerVersion(new Version(8, 0, 21)));
                         break;
                     //case 3 dùng cho kết nối InformIx
@@ -239,10 +242,12 @@ namespace IBox.Database.DBC.Implementation
                         connectionInfo?.Username,
                         encryption.Decrypt(connectionInfo?.Password ?? ""),
                         additionalOptions);
+                        Log.Information($"[DB Connection - Oracle] Server: {connectionInfo?.Address}:{connectionInfo?.Port}, Database: {connectionInfo?.Catalog}");
                         optionsBuilder.UseOracle(connectStringOracle);
                         break;
 
                     case 5:
+                        Log.Information($"[DB Connection - SQLite] Database: {connectionInfo?.Address}");
                         optionsBuilder.UseSqlite($@"Data Source={connectionInfo?.Address ?? ""};Cache=Shared;");
                         break;
 
@@ -253,6 +258,16 @@ namespace IBox.Database.DBC.Implementation
                         connectionInfo?.Username,
                         encryption.Decrypt(connectionInfo?.Password ?? ""),
                         additionalOptions);
+                        
+                        var maskedConnectionString = string.Format(baseConnectionStringTenant,
+                        connectionInfo?.Address,
+                        connectionInfo?.Catalog,
+                        connectionInfo?.Username,
+                        "***MASKED***",
+                        additionalOptions);
+                        
+                        Log.Information($"[DB Connection - SQL Server] Connection string: {maskedConnectionString}");
+                        
                         optionsBuilder.UseSqlServer(connectString);
                         break;
                 }
