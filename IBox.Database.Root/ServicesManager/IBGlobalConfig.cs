@@ -300,6 +300,11 @@ namespace IBox.Database.Root
         {
             try
             {
+                IBGlobalConfig.Services = this.rootContext.Context.S_Services
+                    .Where(ptr => ptr.IsDelete != true)
+                    .ToList();
+                LoadService();
+
                 List<IBGlobalConfigList> dynamics = new List<IBGlobalConfigList>();
                 var Authorize = requestContext.Headers["Authorization"];
                 IBGlobalConfig.Services.ToList().ForEach(e =>

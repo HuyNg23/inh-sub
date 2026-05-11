@@ -44,7 +44,15 @@ namespace IBox.Database.Tenant.ServicesManager
                 var scheduleServiceIBox = IBGlobalConfig.ScheduleServiceIBox;
                 var apiEndpoints = new List<ApiEndpointInfo>();
 
-                foreach (var urlRestService in restServiceIBox.Where(ptr => ptr.Contains(IBGlobalConfig.ThisSite)))
+                var restEndpoints = restServiceIBox
+                    .Where(ptr => ptr.Contains(IBGlobalConfig.ThisSite))
+                    .ToList();
+                if (!restEndpoints.Any())
+                {
+                    restEndpoints = restServiceIBox.ToList();
+                }
+
+                foreach (var urlRestService in restEndpoints)
                 {
                     string urlGetDataLog = string.Format(@"{0}{1}", urlRestService, UrlServiceIBConfig.UrlGetDataStream);
                     apiEndpoints.Add(new ApiEndpointInfo()
@@ -53,7 +61,15 @@ namespace IBox.Database.Tenant.ServicesManager
                     });
                 }
 
-                foreach (var urlScheduleService in scheduleServiceIBox.Where(ptr => ptr.Contains(IBGlobalConfig.ThisSite)))
+                var scheduleEndpoints = scheduleServiceIBox
+                    .Where(ptr => ptr.Contains(IBGlobalConfig.ThisSite))
+                    .ToList();
+                if (!scheduleEndpoints.Any())
+                {
+                    scheduleEndpoints = scheduleServiceIBox.ToList();
+                }
+
+                foreach (var urlScheduleService in scheduleEndpoints)
                 {
                     string urlGetDataLog = string.Format(@"{0}{1}", urlScheduleService, UrlServiceIBConfig.UrlGetDataStream);
                     apiEndpoints.Add(new ApiEndpointInfo()

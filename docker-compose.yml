@@ -56,6 +56,27 @@ x-ibox-common-environment: &ibox-common-environment
   IBOX_DATA_ROOT: "/app"
 
 services:
+  # SQL Server for local Docker development
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${SQL_SA_PASSWORD}"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -Q \"SELECT 1\" -C || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
+    networks:
+      ibox-network:
+        ipv4_address: 172.18.0.10
+
   # IBox.Client - Port 5001
   ibox-client:
     build:
@@ -67,6 +88,9 @@ services:
       - "5001:5000"
     volumes:
       - client_logs:/app/Logs
+    depends_on:
+      sqlserver:
+        condition: service_healthy
     networks:
       ibox-network:
         ipv4_address: 172.18.0.20
@@ -84,6 +108,9 @@ services:
       - service_logs:/app/Logs
       - service_chatbot_logs:/app/DataBaseChatBot
       - service_ibox_logs:/app/DatabaseLogIBox
+    depends_on:
+      sqlserver:
+        condition: service_healthy
     networks:
       ibox-network:
         ipv4_address: 172.18.0.21
@@ -104,7 +131,10 @@ services:
       ibox-network:
         ipv4_address: 172.18.0.22
     depends_on:
-      - ibox-logservice
+      sqlserver:
+        condition: service_healthy
+      ibox-logservice:
+        condition: service_started
 
   # IBox.Root.Client - Port 5004
   ibox-root-client:
@@ -117,6 +147,9 @@ services:
       - "5004:5000"
     volumes:
       - root_client_logs:/app/Logs
+    depends_on:
+      sqlserver:
+        condition: service_healthy
     networks:
       ibox-network:
         ipv4_address: 172.18.0.23
@@ -132,6 +165,9 @@ services:
       - "5005:5000"
     volumes:
       - schedule_logs:/app/Logs
+    depends_on:
+      sqlserver:
+        condition: service_healthy
     networks:
       ibox-network:
         ipv4_address: 172.18.0.24
@@ -148,6 +184,9 @@ services:
     volumes:
       - service_store_logs:/app/Logs
       - service_store_wwwroot:/app/wwwroot
+    depends_on:
+      sqlserver:
+        condition: service_healthy
     networks:
       ibox-network:
         ipv4_address: 172.18.0.25
@@ -168,3 +207,4 @@ volumes:
   schedule_logs:
   service_store_logs:
   service_store_wwwroot:
+  sqlserver_data:
