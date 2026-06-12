@@ -1,4 +1,5 @@
-﻿using IBox.DLEx.Execution;
+﻿using IBox.Common.TCP;
+using IBox.DLEx.Execution;
 using IBox.DLEx.Implementation;
 using IBox.Formatting;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,7 @@ namespace IBox.DLEx
         {
             services.AddScoped<IExecuteWF, ExecuteWF>();
             services.AddScoped<IString, IBString>();
+            services.AddSingleton<IKafkaProducer, DefaultKafkaProducer>();
             return services;
         }
     }

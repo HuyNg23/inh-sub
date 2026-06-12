@@ -203,6 +203,7 @@ namespace IBox.Workflow.Execution
                 throw new IboxLog($"An Unexpected Error Has Occurred: {ex.Message}", tenantId, ex);
             }
         }
+        
         void BuildModelRecursive(WFStep step, string tenantId, IBContext<TenantContext> tenantContext)
         {
             if (!string.IsNullOrEmpty(step.Param) && !string.IsNullOrEmpty(step.Response))
@@ -418,12 +419,13 @@ namespace IBox.Workflow.Execution
                 Deploy(wfid, tenantId);
                 wf = tenantwfs.Value.WFs.FirstOrDefault(ptr => ptr.Key == wfid);
             }
+            
 
             if (wf.Value == null)
             {
                 throw new IboxLog(string.Format("workflow {0} was not found after deploying", wfid), tenantId);
             }
-
+            Log.Information("GetWFDeployByID check:{wf}", wf.Value);
             return wf.Value;
         }
 

@@ -83,8 +83,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: IBoxAllowSpecificOrigins,
                       builder =>
                       {
-                          builder.WithOrigins(cORSWhileList).AllowAnyHeader();
-                          builder.AllowCredentials();
+                          builder.WithOrigins(cORSWhileList)
+                                 .AllowAnyHeader()
+                                 .AllowAnyMethod()
+                                 .AllowCredentials();
                           builder.WithHeaders(cORSHeaderRequired);
                           builder.SetIsOriginAllowed(origin => true);
                           builder.SetIsOriginAllowedToAllowWildcardSubdomains();
@@ -124,6 +126,9 @@ builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var app = builder.Build();
 
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
 app.UseCors(IBoxAllowSpecificOrigins);
 
 var rootContext = app.Services.CreateScope().ServiceProvider.GetService<IBContext<RootContext>>();
@@ -157,14 +162,8 @@ gConfig.LoadConfigRoot();
 
 gConfig.MailAlertRunService("ClientBE");
 
-app.UseHttpsRedirection();
-
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.UseRouting();
-
-app.UseStaticFiles();
 
 app.Run();

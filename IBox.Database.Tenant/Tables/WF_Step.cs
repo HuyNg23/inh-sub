@@ -78,10 +78,11 @@ namespace IBox.Database.Tenant.Tables
         ReadArray,
         SendMail,
         BuildListObject,
-        Formatting,
+        Formatting,        
         FindInList,
         InformixExecute,
         HttpStatusResponse,
+        KafkaPush,
         CallXAPI,
         RunScript,
         ForwardFile

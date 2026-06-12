@@ -20,15 +20,16 @@ namespace IBox.Database.Tenant
                 throw new IboxLog("Can not connect to main database", "AppLogs");
             }
 
-            using (var dbContextTransaction = dbContext.Database.BeginTransaction())
+            var strategy = dbContext.Database.CreateExecutionStrategy();
+            strategy.Execute(() =>
             {
-                if (record != null)
+                using (var dbContextTransaction = dbContext.Database.BeginTransaction())
                 {
-                    throw new IboxLog(String.Format("record in [{0}] was exist", typeof(T).ToString().Split(".").LastOrDefault()), "AppLogs");
-                }
+                    if (record != null)
+                    {
+                        throw new IboxLog(String.Format("record in [{0}] was exist", typeof(T).ToString().Split(".").LastOrDefault()), "AppLogs");
+                    }
 
-                try
-                {
                     newRecord.IsDelete = false;
                     newRecord.CreatedDate = DateTime.Now;
                     newRecord.ModificationDate = DateTime.Now;
@@ -36,12 +37,7 @@ namespace IBox.Database.Tenant
                     dbContext.SaveChanges();
                     dbContextTransaction.Commit();
                 }
-                catch (Exception)
-                {
-                    dbContextTransaction.Rollback();
-                    throw;
-                }
-            }
+            });
         }
 
         /// <summary>
@@ -56,26 +52,22 @@ namespace IBox.Database.Tenant
                 throw new IboxLog("Can not connect to main database", "AppLogs");
             }
 
-            using (var dbContextTransaction = dbContext.Database.BeginTransaction())
+            var strategy = dbContext.Database.CreateExecutionStrategy();
+            strategy.Execute(() =>
             {
-                if (record == null)
+                using (var dbContextTransaction = dbContext.Database.BeginTransaction())
                 {
-                    throw new IboxLog(String.Format("record in [{0}] is not found", typeof(T).ToString().Split(".").LastOrDefault()), "AppLogs");
-                }
-                try
-                {
+                    if (record == null)
+                    {
+                        throw new IboxLog(String.Format("record in [{0}] is not found", typeof(T).ToString().Split(".").LastOrDefault()), "AppLogs");
+                    }
                     record.IsDelete = true;
                     record.ModificationDate = DateTime.Now;
                     dbContext.Set<T>().Update(record);
                     dbContext.SaveChanges();
                     dbContextTransaction.Commit();
                 }
-                catch
-                {
-                    dbContextTransaction.Rollback();
-                    throw new IboxLog(String.Format("Can not commit transaction in [{0}]", typeof(T).ToString().Split(".").LastOrDefault()), "AppLogs");
-                }
-            }
+            });
         }
 
         /// <summary>
@@ -90,27 +82,23 @@ namespace IBox.Database.Tenant
                 throw new IboxLog("Can not connect to main database", "AppLogs");
             }
 
-            using (var dbContextTransaction = dbContext.Database.BeginTransaction())
+            var strategy = dbContext.Database.CreateExecutionStrategy();
+            strategy.Execute(() =>
             {
-                if (record == null)
+                using (var dbContextTransaction = dbContext.Database.BeginTransaction())
                 {
-                    throw new IboxLog(String.Format("record in [{0}] is not found", typeof(T).ToString().Split(".").LastOrDefault()), "AppLogs");
-                }
+                    if (record == null)
+                    {
+                        throw new IboxLog(String.Format("record in [{0}] is not found", typeof(T).ToString().Split(".").LastOrDefault()), "AppLogs");
+                    }
 
-                try
-                {
                     record.IsDelete = false;
                     record.ModificationDate = DateTime.Now;
                     dbContext.Set<T>().Update(record);
                     dbContext.SaveChanges();
                     dbContextTransaction.Commit();
                 }
-                catch
-                {
-                    dbContextTransaction.Rollback();
-                    throw new IboxLog(String.Format("Can not commit transaction in [{0}]", typeof(T).ToString().Split(".").LastOrDefault()), "AppLogs");
-                }
-            }
+            });
         }
 
         /// <summary>
@@ -125,20 +113,21 @@ namespace IBox.Database.Tenant
                 throw new IboxLog("Can not connect to main database", "AppLogs");
             }
 
-            using (var dbContextTransaction = dbContext.Database.BeginTransaction())
+            var strategy = dbContext.Database.CreateExecutionStrategy();
+            strategy.Execute(() =>
             {
-                if (rec == null)
+                using (var dbContextTransaction = dbContext.Database.BeginTransaction())
                 {
-                    throw new IboxLog(String.Format("record in [{0}] was existed", typeof(T).ToString().Split(".").LastOrDefault()), "AppLogs");
-                }
+                    if (rec == null)
+                    {
+                        throw new IboxLog(String.Format("record in [{0}] was existed", typeof(T).ToString().Split(".").LastOrDefault()), "AppLogs");
+                    }
 
-                if (record == null)
-                {
-                    throw new IboxLog(String.Format("record in to [{0}] was not input data", typeof(T).ToString().Split(".").LastOrDefault()), "AppLogs");
-                }
+                    if (record == null)
+                    {
+                        throw new IboxLog(String.Format("record in to [{0}] was not input data", typeof(T).ToString().Split(".").LastOrDefault()), "AppLogs");
+                    }
 
-                try
-                {
                     rec.ModificationDate = DateTime.Now;
                     var props = typeof(T).GetProperties();
                     foreach (var prop in props.Select(ptr => ptr.Name))
@@ -160,12 +149,7 @@ namespace IBox.Database.Tenant
                     dbContext.SaveChanges();
                     dbContextTransaction.Commit();
                 }
-                catch (Exception ex)
-                {
-                    dbContextTransaction.Rollback();
-                    throw new IboxLog(String.Format("Can not commit transaction in [{0}]", typeof(T).ToString().Split(".").LastOrDefault()),"AppLogs", ex);
-                }
-            }
+            });
         }
 
         /// <summary>

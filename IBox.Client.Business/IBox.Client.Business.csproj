@@ -22,10 +22,4 @@
     <ProjectReference Include="..\IBox.Workflow\IBox.Workflow.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="Microsoft.Web.Administration">
-      <HintPath>C:\Windows\System32\inetsrv\Microsoft.Web.Administration.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

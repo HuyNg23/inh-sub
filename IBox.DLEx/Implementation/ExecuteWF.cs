@@ -25,6 +25,7 @@ namespace IBox.DLEx.Implementation
     {
         private readonly IModelControl _modelControl;
         private readonly IWorkflowControl _workflowControl;
+        private readonly IKafkaProducer _kafkaProducer;
         private IHeaderDictionary _headerDictionary { set; get; }
         private readonly IConfiguration _configuration;
         private readonly IRestAPI _restAPI;
@@ -58,6 +59,7 @@ namespace IBox.DLEx.Implementation
         {
             _workflowControl = serviceProvider.GetService<IWorkflowControl>();
             _modelControl = serviceProvider.GetService<IModelControl>();
+            _kafkaProducer = serviceProvider.GetService<IKafkaProducer>() ?? new DefaultKafkaProducer();
             _configuration = serviceProvider.GetService<IConfiguration>();
             _restAPI = serviceProvider.GetService<IRestAPI>();
             _connection = serviceProvider.GetService<IDBConnection>();
@@ -127,7 +129,6 @@ namespace IBox.DLEx.Implementation
                 }
 
                 var wf = _workflowControl.GetWFDeployByID(wfid, tenantId);
-
                 if (wf.AuthenType == AuthorType.Basic)
                 {
                     if (this._headerDictionary.Any(ptr => ptr.Key == "Authorization"))
@@ -148,8 +149,8 @@ namespace IBox.DLEx.Implementation
                         throw new IboxLog("Authorization is required", tenantId);
                     }
                 }
-
                 var result = LoadStep(wf.WFstep, param, wf.Name, tenantId);
+                Log.Information(" kiểm tra trước khi gọi LoadStep() WF Steps: {@WFstep}, ID: {id}, Tenant ID: {tenantId}", wf.WFstep, wfid, tenantId);
                 return (result, wf.Name);
             }
             catch (Exception ex)
@@ -343,6 +344,10 @@ namespace IBox.DLEx.Implementation
                         case WF_Type.HttpStatusResponse:
                             var (resultHttpStatusRes, childStepsHttpStatusRes) = runHttpStatusResponse(step, param, tenantId, ref httpResponse);
                             return LoadStep(childStepsHttpStatusRes, resultHttpStatusRes, wfName, tenantId, uploadedFiles);
+
+                        case WF_Type.KafkaPush:
+                            var (resultKafkaPush, childStepsKafkaPush) = runKafkaPush(step, param, tenantId);
+                            return LoadStep(childStepsKafkaPush, resultKafkaPush, wfName, tenantId, uploadedFiles);
 
                         default:
                             // End flow

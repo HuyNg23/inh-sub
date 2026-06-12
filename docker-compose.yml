@@ -2,8 +2,6 @@
 # Giúp test local trước khi deploy lên K8s
 # Mapping ports giống IIS setup
 
-version: '3.8'
-
 x-ibox-common-environment: &ibox-common-environment
   Serilog__Using__0: "Serilog.Sinks.Console"
   Serilog__Using__1: "Serilog.Sinks.File"
@@ -67,6 +65,7 @@ services:
       - "1433:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
+     # - "C:/Users/huyhg/Downloads/INH/docker-data/sqlserver:/var/opt/mssql"
     healthcheck:
       test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -Q \"SELECT 1\" -C || exit 1"]
       interval: 10s
@@ -76,6 +75,7 @@ services:
     networks:
       ibox-network:
         ipv4_address: 172.18.0.10
+      mock-kafka-net: {}
 
   # IBox.Client - Port 5001
   ibox-client:
@@ -94,6 +94,7 @@ services:
     networks:
       ibox-network:
         ipv4_address: 172.18.0.20
+      mock-kafka-net: {}
 
   # IBox.LogService - Port 5002
   ibox-logservice:
@@ -114,6 +115,7 @@ services:
     networks:
       ibox-network:
         ipv4_address: 172.18.0.21
+      mock-kafka-net: {}
 
   # IBox.RestService - Port 5003
   ibox-restservice:
@@ -130,6 +132,7 @@ services:
     networks:
       ibox-network:
         ipv4_address: 172.18.0.22
+      mock-kafka-net: {}
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -153,6 +156,7 @@ services:
     networks:
       ibox-network:
         ipv4_address: 172.18.0.23
+      mock-kafka-net: {}
 
   # IBox.Schedule - Port 5005
   ibox-schedule:
@@ -171,6 +175,7 @@ services:
     networks:
       ibox-network:
         ipv4_address: 172.18.0.24
+      mock-kafka-net: {}
 
   # IBox.StoreService - Port 5006
   ibox-storeservice:
@@ -190,13 +195,19 @@ services:
     networks:
       ibox-network:
         ipv4_address: 172.18.0.25
+      mock-kafka-net: {}
 
 networks:
   ibox-network:
     external: true
     name: ibox-network
 
+  mock-kafka-net:
+    external: true
+    name: mock-kafka-net
+
 volumes:
+  sqlserver_data:
   ibox-data:
   client_logs:
   service_logs:
@@ -207,4 +218,3 @@ volumes:
   schedule_logs:
   service_store_logs:
   service_store_wwwroot:
-  sqlserver_data:

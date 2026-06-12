@@ -24,7 +24,9 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Serilog;
 using System.Text.RegularExpressions;
+using MongoDB.Bson;
 
 namespace IBox.DLEx.Implementation
 {
@@ -43,6 +45,7 @@ namespace IBox.DLEx.Implementation
         /// <exception cref="IboxLog"></exception>
         private dynamic runStart(WFStep step, object param, string tenantId)
         {
+            Log.Information("[Step {StepId}] Starting execution", step.Id);
             try
             {
                 if (step.ChildSteps == null)
@@ -2219,6 +2222,19 @@ namespace IBox.DLEx.Implementation
             }
         }
 
+        private string FormatJsonStringIfPossible(string json)
+        {
+            try
+            {
+                var obj = JsonConvert.DeserializeObject(json);
+                return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented);
+            }
+            catch
+            {
+                return json;
+            }
+        }
+
         private static async Task<string> SerializeHttpContentForLog(HttpContent content)
         {
             if (content == null) return "(null)";
@@ -4090,5 +4106,131 @@ namespace IBox.DLEx.Implementation
                 throw;
             }
         }
+
+        /// <summary>
+        /// Push message tới Kafka
+        /// </summary>
+        private (dynamic, List<WFStep>) runKafkaPush(WFStep step, object param, string tenantId)
+        {
+            Log.Information("method runKafkaPush is running");
+            try
+            {
+                if (string.IsNullOrEmpty(step.Config))
+                {
+                    throw new IboxLog($"Can not found Config in step {step.Id}", tenantId);
+                }
+
+                var config = JsonConvert.DeserializeObject<dynamic>(step.Config);
+                if (config == null)
+                {
+                    throw new IboxLog($"Can not parse Config in step {step.Id}", tenantId);
+                }
+
+                string bootstrapServers = config.bootstrapServers?.ToString();
+                string topic = config.topic?.ToString();
+                string messageBody = config.messageBody ?? "test message";
+                string partitionKey = config.partitionKey?.ToString() ?? "";
+                string messageFormat = config.messageFormat?.ToString() ?? "JSON";
+
+                if (string.IsNullOrWhiteSpace(bootstrapServers) || string.IsNullOrWhiteSpace(topic))
+                {
+                    throw new IboxLog($"Kafka step {step.Id} requires bootstrapServers and topic.", tenantId);
+                }
+
+                // Replace placeholders trong message body
+                messageBody = replaceProperty(messageBody, "", param);
+                var tags = findTag(messageBody);
+                foreach (var t in tags)
+                {
+                    if (string.IsNullOrEmpty(t)) continue;
+                    var objid = t.Split('.')[0];
+                    var cacheEntry = this.caches.FirstOrDefault(c => c.Key == objid);
+                    messageBody = replacePropertyCache(objid, messageBody, "", cacheEntry.Value?.Obj ?? new { }, tenantId);
+                }
+                var bindingdata04 = this._modelControl.BindingData(step.Response, config.messageBody, tenantId);
+                if (step.SaveResponseToCache ?? false)
+                {
+                    saveCahe(step.Id ?? throw new IboxLog("step id is null", tenantId), new WFCache()
+                    {
+                        ObjType = this._modelControl.GetType(step.Response, tenantId),
+                        Obj = bindingdata04
+                    });
+                }
+                Log.Information("bindingdata04: {BindingData}", JsonConvert.SerializeObject(bindingdata04));
+                if (string.IsNullOrEmpty(messageBody))
+                {
+                    messageBody = JsonConvert.SerializeObject(param);
+                }
+
+                Log.Information("[KafkaPush - Step {StepId}] Transformed Message Body: {MessageBody}", step.Id, messageBody);
+
+                // Gửi message qua IKafkaProducer (đã inject trong constructor ExecuteWF)
+                // Xử lý headers nếu có
+                Dictionary<string, string> headersDict = null;
+                if (config.headers != null)
+                {
+                    headersDict = new Dictionary<string, string>();
+                    foreach (var header in config.headers)
+                    {
+                        string key = header.key?.ToString();
+                        string value = header.value?.ToString();
+                        if (!string.IsNullOrEmpty(key))
+                        {
+                            headersDict[key] = value ?? "";
+                        }
+                    }
+                }
+
+                string partitionKeyValue = !string.IsNullOrEmpty(partitionKey) ? partitionKey : null;
+                Log.Information("[KafkaPush - Step {StepId}] Sending to Topic: {Topic} at {Broker} | PartitionKey: {PartitionKey} | HasHeaders: {HasHeaders}", step.Id, topic, bootstrapServers, partitionKeyValue, headersDict != null && headersDict.Count > 0);
+                if (headersDict != null && headersDict.Count > 0)
+                {
+                    _kafkaProducer.ProduceMessageWithHeadersAsync(bootstrapServers, topic, messageBody, headersDict, partitionKeyValue).GetAwaiter().GetResult();
+                }
+                else
+                {
+                    _kafkaProducer.ProduceMessageAsync(bootstrapServers, topic, messageBody, partitionKeyValue).GetAwaiter().GetResult();
+                }
+
+                var responseBody = ParseJsonOrKeepString(messageBody);
+
+                saveDebug(new ModelXWorkflowDebug
+                {
+                    RequestBody = param,
+                    ResponseBody = responseBody,
+                    StepID = step.Id,
+                    StepName = step.Description,
+                    ErrorMessage = string.Empty,
+                    WorkflowId = step.WfId
+                });
+
+                if (step.SaveResponseToCache ?? false)
+                {
+                    saveCahe(step.Id ?? throw new IboxLog("step id is null", tenantId), new WFCache()
+                    {
+                        ObjType = this._modelControl.GetType(step.Response, tenantId),
+                        Obj = param
+                    });
+                }
+
+                var childSteps = step.ChildSteps?.Where(ptr => ptr.IsExceptionStep != true).ToList() ?? new List<WFStep>();
+                return (param, childSteps);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "[KafkaPush - Step {StepId}] FATAL ERROR when pushing to topic Param: {Param}", step.Id, JsonConvert.SerializeObject(param));
+                saveDebug(new ModelXWorkflowDebug
+                {
+                    RequestBody = param,
+                    ResponseBody = "",
+                    StepID = step.Id,
+                    StepName = step.Description,
+                    ErrorMessage = ex.Message,
+                    WorkflowId = step.WfId
+                });
+                throw;
+            }
+        }
+    
     }
 }
