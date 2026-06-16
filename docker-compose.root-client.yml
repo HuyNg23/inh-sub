@@ -1,0 +1,79 @@
+version: '3.8'
+
+x-ibox-common-environment: &ibox-common-environment
+  Serilog__Using__0: "Serilog.Sinks.Console"
+  Serilog__Using__1: "Serilog.Sinks.File"
+  Serilog__MinimumLevel__Default: "Debug"
+  Serilog__MinimumLevel__Override__Microsoft: "Warning"
+  Serilog__MinimumLevel__Override__System: "Warning"
+  Serilog__WriteTo__0__Name: "Console"
+  Serilog__WriteTo__0__Args__outputTemplate: "{Timestamp:o} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}"
+  Serilog__Enrich__0: "FromLogContext"
+  Serilog__Enrich__1: "WithMachineName"
+  Serilog__Enrich__2: "WithThreadId"
+  Serilog__Properties__ApplicationName: "Serilog.WebApplication"
+  Quartz__quartz.scheduler.instanceName: "Quartz ASP.NET Core Scheduler"
+  Schedule__RuntimeSchedule: "0 01 01 ? * * *"
+  Schedule__RuntimeJobAutoStart: "0 02 01 ? * * *"
+  AllowedHosts: "*"
+  IBoxConfig__Database__Main__ServerName: "${DB_SERVER}"
+  IBoxConfig__Database__Main__DatabaseName: "${DB_NAME}"
+  IBoxConfig__Database__Main__UserName: "${DB_USER}"
+  IBoxConfig__Database__Main__Password: "${DB_PASSWORD}"
+  IBoxConfig__Database__Main__Timeout: "30"
+  IBoxConfig__Database__Options__0__Key: "MultiSubnetFailover"
+  IBoxConfig__Database__Options__0__Value: "True"
+  IBoxConfig__Database__Options__1__Key: "TrustServerCertificate"
+  IBoxConfig__Database__Options__1__Value: "True"
+  IBoxConfig__Database__Options__2__Key: "MultipleActiveResultSets"
+  IBoxConfig__Database__Options__2__Value: "True"
+  IBoxConfig__Database__Options__3__Key: "Pooling"
+  IBoxConfig__Database__Options__3__Value: "True"
+  IBoxConfig__Database__Options__4__Key: "Min Pool Size"
+  IBoxConfig__Database__Options__4__Value: "5"
+  IBoxConfig__Database__Options__5__Key: "Max Pool Size"
+  IBoxConfig__Database__Options__5__Value: "60000"
+  IBoxConfig__CORSWhileList__0: "${CORS_ORIGIN_0}"
+  IBoxConfig__CORSWhileList__1: "${CORS_ORIGIN_1}"
+  IBoxConfig__CORSWhileList__2: "${CORS_ORIGIN_2}"
+  IBoxConfig__CORSWhileList__3: "${CORS_ORIGIN_3}"
+  IBoxConfig__CORSHeaderRequired__0: "Content-Type"
+  IBoxConfig__CORSHeaderRequired__1: "Authorization"
+  IBoxConfig__JWT__Key: "${JWT_KEY}"
+  IBoxConfig__JWT__Issuer: "${JWT_ISSUER}"
+  IBoxConfig__JWT__TotalMinuteAlive: "480"
+  IBoxConfig__retainedFileCountLimit: "300"
+  IBoxConfig__fileSizeLimitBytes: "10000000"
+  IBoxConfig__ZipFileDay: "2"
+  IBoxConfig__MaxZipFileCount: "15"
+  IBoxConfig__Port: "5000"
+  IBoxConfig__SubDomain: ""
+  IBoxConfig__TypeProtocol: "0"
+  IBOX_DATA_ROOT: "/app"
+
+services:
+  ibox-root-client:
+    build:
+      context: .
+      dockerfile: IBox.Root.Client/Dockerfile
+    environment:
+      <<: *ibox-common-environment
+    ports:
+      - "5004:5000"
+    volumes:
+      - root_client_logs:/app/Logs
+    networks:
+      ibox-network:
+        ipv4_address: 172.18.0.23
+      mock-kafka-net: {}
+
+networks:
+  ibox-network:
+    external: true
+    name: ibox-network
+  mock-kafka-net:
+    external: true
+    name: mock-kafka-net
+
+volumes:
+  root_client_logs:

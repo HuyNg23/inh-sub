@@ -84,3 +84,6 @@ wwwroot/uploads/
 !IBox.ChatBot.DB/
 !IBox.Database.SQLite/
 !IBox.History.DB/
+
+*.log
+log.txt

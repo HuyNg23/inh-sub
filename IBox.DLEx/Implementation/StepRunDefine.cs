@@ -3169,6 +3169,7 @@ namespace IBox.DLEx.Implementation
                 });
                 //*****2023-10-02 End updateDummy*****
                 //Update đẩy dạng list Models
+                Log.Information("Config and type after replace: {Config}, {TypeOfConfig}", config, config?.GetType());
                 var bindingdata03 = this._modelControl.BindingData(step.Response, config, tenantId);
                 if (step.SaveResponseToCache ?? false)
                 {
@@ -4128,7 +4129,7 @@ namespace IBox.DLEx.Implementation
 
                 string bootstrapServers = config.bootstrapServers?.ToString();
                 string topic = config.topic?.ToString();
-                string messageBody = config.messageBody ?? "test message";
+                string messageBody = config.messageBody?.ToString() ?? "test message";
                 string partitionKey = config.partitionKey?.ToString() ?? "";
                 string messageFormat = config.messageFormat?.ToString() ?? "JSON";
 
@@ -4139,15 +4140,18 @@ namespace IBox.DLEx.Implementation
 
                 // Replace placeholders trong message body
                 messageBody = replaceProperty(messageBody, "", param);
-                var tags = findTag(messageBody);
+                List<string> tags = findTag(messageBody);
                 foreach (var t in tags)
                 {
                     if (string.IsNullOrEmpty(t)) continue;
                     var objid = t.Split('.')[0];
                     var cacheEntry = this.caches.FirstOrDefault(c => c.Key == objid);
-                    messageBody = replacePropertyCache(objid, messageBody, "", cacheEntry.Value?.Obj ?? new { }, tenantId);
+                    if (cacheEntry.Value?.Obj != null)
+                    {
+                        messageBody = replacePropertyCache(objid, messageBody, "", cacheEntry.Value.Obj, tenantId);
+                    }
                 }
-                var bindingdata04 = this._modelControl.BindingData(step.Response, config.messageBody, tenantId);
+                var bindingdata04 = this._modelControl.BindingData(step.Response, messageBody, tenantId);
                 if (step.SaveResponseToCache ?? false)
                 {
                     saveCahe(step.Id ?? throw new IboxLog("step id is null", tenantId), new WFCache()
@@ -4197,7 +4201,7 @@ namespace IBox.DLEx.Implementation
                 saveDebug(new ModelXWorkflowDebug
                 {
                     RequestBody = param,
-                    ResponseBody = responseBody,
+                    ResponseBody = bindingdata04,
                     StepID = step.Id,
                     StepName = step.Description,
                     ErrorMessage = string.Empty,
