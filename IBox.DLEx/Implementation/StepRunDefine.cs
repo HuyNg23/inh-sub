@@ -3163,6 +3163,7 @@ namespace IBox.DLEx.Implementation
                         var cache = this.caches.FirstOrDefault(ptr => ptr.Key == objid);
                         if (cache.Value?.Obj != null)
                         {
+                            Log.Information("Cache value for {ObjId}: {CacheValue}", objid, cache.Value?.Obj);
                             config = replacePropertyCache(objid, config, "", cache.Value?.Obj ?? new { }, tenantId);
                         }
                     }

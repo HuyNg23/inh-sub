@@ -5,6 +5,7 @@ using IBox.Workflow.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Serilog;
+using System.Text.RegularExpressions;
 using System.Collections;
 using System.Reflection;
 using System.Xml;
@@ -184,7 +185,7 @@ namespace IBox.Workflow.Execution
                 }
 
                 var model = tenantwfs.Value.ObjSchemaes.FirstOrDefault(ptr => ptr.Key == objid);
-
+                Log.Information("in ra model {Model}", model);
                 if (data == null || string.IsNullOrEmpty(data.ToString()) || data == "{}")
                 {
                     return JsonConvert.DeserializeObject((string)BindingDataDump(objid, tenantId), model.Value);
@@ -196,11 +197,33 @@ namespace IBox.Workflow.Execution
                             .Replace("\\? ", "?")   // Fix các ký tự khác nếu cần
                             .Replace("\\-", "-");
 
-                return JsonConvert.DeserializeObject(str, model.Value);
+                // If the target model is a plain string, return the raw value (avoid JSON conversion errors)
+                if (model.Value == typeof(string))
+                {
+                    return str;
+                }
+
+                try
+                {
+                    return JsonConvert.DeserializeObject(str, model.Value);
+                }
+                catch (JsonException)
+                {
+                    try
+                    {
+                        var pattern = @"(""[^""\s]+""\s*:\s*)([A-Za-z_][A-Za-z0-9_]*)(\s*[,}])";
+                        var fixedStr = Regex.Replace(str, pattern, m => $"{m.Groups[1].Value}\"{m.Groups[2].Value}\"{m.Groups[3].Value}");
+                        return JsonConvert.DeserializeObject(fixedStr, model.Value);
+                    }
+                    catch (Exception innerEx)
+                    {
+                        throw new IboxLog($"An Unexpected Error Has Occurred at bindingdata() upper {innerEx.Message}", tenantId, innerEx);
+                    }
+                }
             }
             catch (Exception ex)
             {
-                throw new IboxLog($"An Unexpected Error Has Occurred {ex.Message}", tenantId, ex);
+                throw new IboxLog($"An Unexpected Error Has Occurred at bindingdata() upper {ex.Message}", tenantId, ex);
             }
         }
 
@@ -216,7 +239,7 @@ namespace IBox.Workflow.Execution
                 }
 
                 var model = tenantwfs.Value.ObjSchemaes.FirstOrDefault(ptr => ptr.Key == objid);
-
+                Log.Information("in ra model {Model}", model);
                 if (data == null || string.IsNullOrEmpty(data.ToString()))
                 {
                     return JsonConvert.DeserializeObject((string)BindingDataDump(objid, tenantId), model.Value);
@@ -246,7 +269,7 @@ namespace IBox.Workflow.Execution
             }
             catch (Exception ex)
             {
-                throw new IboxLog($"An Unexpected Error Has Occurred {ex.Message}", tenantId, ex);
+                throw new IboxLog($"An Unexpected Error Has Occurred at bindingdata() lower {ex.Message}", tenantId, ex);
             }
         }
 
